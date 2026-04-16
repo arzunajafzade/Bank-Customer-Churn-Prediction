@@ -8,7 +8,7 @@
 An end-to-end Machine Learning project that predicts the likelihood of bank customers leaving (churning). This repository features a comprehensive Exploratory Data Analysis (EDA) and a production-ready **Streamlit** web application.
 
 ## 🌐 Live Demo
-🚀 **Access the interactive app here:** [Insert your Streamlit Cloud Link Here]
+🚀 **Access the interactive app here:** [https://bank-customer-churn-prediction-wirdq5pe6quekseyy2qhzt.streamlit.app/]
 
 ---
 
