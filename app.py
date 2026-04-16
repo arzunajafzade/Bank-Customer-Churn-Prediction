@@ -2,51 +2,45 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Page configuration - Brauzer tabında görünən ad
+# Page configuration
 st.set_page_config(page_title="Bank Churn AI", page_icon="🏦")
 
 # 1. Load the model
+# Ensure this file was dumped AFTER training in your notebook
 model = joblib.load('bank_churn_model.pkl')
 
-# Title and Description
+# Title
 st.title("🏦 Customer Churn Intelligence")
-st.markdown("""
-    Predict customer retention with **Machine Learning**. 
-    Fill in the details below to see the risk analysis.
-    ---
-""")
+st.markdown("---")
 
-# 2. User Inputs organized in a better layout
+# 2. User Inputs
 col1, col2 = st.columns(2)
 
 with col1:
-    st.subheader("Financial Profile")
     credit_score = st.number_input("Credit Score", 300, 850, 600)
-    balance = st.number_input("Account Balance ($)", 0.0, 250000.0, 50000.0)
-    salary = st.number_input("Estimated Salary ($)", 0.0, 200000.0, 75000.0)
-    has_card = st.radio("Has Credit Card?", ["Yes", "No"])
-
-with col2:
-    st.subheader("Demographics & Status")
     age = st.slider("Age", 18, 100, 35)
     tenure = st.slider("Tenure (Years)", 0, 10, 5)
+    balance = st.number_input("Balance ($)", 0.0, 250000.0, 50000.0)
     num_products = st.selectbox("Number of Products", [1, 2, 3, 4])
-    is_active = st.radio("Is Active Member?", ["Yes", "No"])
 
-st.markdown("---")
-geography = st.selectbox("Geography", ["France", "Germany", "Spain"])
-gender = st.selectbox("Gender", ["Male", "Female"])
+with col2:
+    has_card = st.selectbox("Has Credit Card?", [1, 0])
+    is_active = st.selectbox("Is Active Member?", [1, 0])
+    salary = st.number_input("Estimated Salary ($)", 0.0, 200000.0, 50000.0)
+    geography = st.selectbox("Geography", ["France", "Germany", "Spain"])
+    gender = st.selectbox("Gender", ["Male", "Female"])
 
-# 3. Processing Inputs
-if st.button("🔍 Analyze Retention Risk", use_container_width=True):
+# 3. CRITICAL: Match the exact column order from your Notebook
+if st.button("Analyze Risk", use_container_width=True):
+    # This order must match X_train.columns exactly!
     data = {
         'CreditScore': credit_score,
         'Age': age,
         'Tenure': tenure,
         'Balance': balance,
         'NumOfProducts': num_products,
-        'HasCrCard': 1 if has_card == "Yes" else 0,
-        'IsActiveMember': 1 if is_active == "Yes" else 0,
+        'HasCrCard': has_card,
+        'IsActiveMember': is_active,
         'EstimatedSalary': salary,
         'Geography_Germany': 1 if geography == "Germany" else 0,
         'Geography_Spain': 1 if geography == "Spain" else 0,
@@ -54,11 +48,14 @@ if st.button("🔍 Analyze Retention Risk", use_container_width=True):
     }
     
     input_df = pd.DataFrame([data])
-    prediction = model.predict(input_df)[0]
     
-    # 4. Result Display
-    st.subheader("Analysis Result:")
+    # 4. Prediction
+    prediction = model.predict(input_df)[0]
+    # Get probability to see how "sure" the model is
+    probability = model.predict_proba(input_df)[0][1] 
+    
+    st.markdown("---")
     if prediction == 1:
-        st.error("⚠️ **High Risk:** This customer is likely to churn (leave).")
+        st.error(f"⚠️ **High Risk:** The model predicts this customer is likely to EXIT (Risk Score: {probability:.2%})")
     else:
-        st.success("✅ **Low Risk:** This customer is likely to stay loyal.")
+        st.success(f"✅ **Low Risk:** The model predicts this customer is likely to STAY (Exit Probability: {probability:.2%})")
